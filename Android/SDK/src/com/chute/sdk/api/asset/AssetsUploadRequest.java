@@ -111,15 +111,14 @@ public class AssetsUploadRequest implements GCHttpRequest {
 		    uploader.startUpload(uploadToken);
 		    Logger.d(TAG, "Calling upload complete");
 		    Logger.d(TAG, "Need to upload");
-		    uploadComplete(context, uploadToken.getId(),
-			    new GCUploadCompleteObjectParser(), new UploadCompleteListener(asset))
-			    .execute();
-		} else {
-		    if (onProgressUpdate != null) {
-			onProgressUpdate.onUploadFinished(asset);
-		    }
+
+		}
+		if (onProgressUpdate != null) {
+		    onProgressUpdate.onUploadFinished(asset);
 		}
 	    }
+	    uploadComplete(context, list.getUploadId(), new GCUploadCompleteObjectParser(),
+		    new UploadCompleteListener()).execute();
 	    handler.post(new Runnable() {
 
 		@Override
@@ -173,25 +172,13 @@ public class AssetsUploadRequest implements GCHttpRequest {
 
     private final class UploadCompleteListener extends GCHttpCallbackImpl<Void> {
 
-	private final GCAssetModel assetModel;
-
-	public UploadCompleteListener(GCAssetModel gcAssetModel) {
-	    this.assetModel = gcAssetModel;
-	}
-
 	@Override
 	public void onSuccess(final Void responseData) {
-	    if (onProgressUpdate != null) {
-		onProgressUpdate.onUploadFinished(assetModel);
-	    }
 	}
 
 	@Override
 	public void onGeneralError(final int responseCode, final String message) {
 	    super.onGeneralError(responseCode, message);
-	    if (onProgressUpdate != null) {
-		onProgressUpdate.onUploadFinished(assetModel);
-	    }
 	}
     }
 

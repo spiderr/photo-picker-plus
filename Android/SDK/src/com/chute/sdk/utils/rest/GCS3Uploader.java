@@ -39,50 +39,51 @@ import com.chute.sdk.utils.rest.entities.CountingInputStreamEntity.UploadListene
 
 public class GCS3Uploader extends GCBaseRestClient {
 
-    private static final int UPLOAD_SOCKET_TIMEOUT = 50 * 1000;
+	private static final int UPLOAD_SOCKET_TIMEOUT = 50 * 1000;
 
-    private static final String TAG = GCS3Uploader.class.getSimpleName();
+	@SuppressWarnings("unused")
+	private static final String TAG = GCS3Uploader.class.getSimpleName();
 
-    private final GCUploadProgressListener onProgressUpdate;
-    private GCUploadToken token;
+	private final GCUploadProgressListener onProgressUpdate;
+	private GCUploadToken token;
 
-    public GCS3Uploader(GCUploadProgressListener onProgressUpdate) {
-	this.onProgressUpdate = onProgressUpdate;
-    }
+	public GCS3Uploader(GCUploadProgressListener onProgressUpdate) {
+		this.onProgressUpdate = onProgressUpdate;
+	}
 
-    public void startUpload(GCUploadToken token) throws IOException {
-	this.token = token;
-	setUrl(token.getUploadInfo().getUploadUrl());
-	startUpload();
-    }
+	public void startUpload(GCUploadToken token) throws IOException {
+		this.token = token;
+		setUrl(token.getUploadInfo().getUploadUrl());
+		startUpload();
+	}
 
-    private void startUpload() throws IOException {
-	HttpPut request = new HttpPut(getUrl());
-	File file = new File(token.getUploadInfo().getFilepath());
-	FileInputStream fileInputStream = new FileInputStream(file);
-	setSocketTimeout(UPLOAD_SOCKET_TIMEOUT);
-	// request.addHeader("Content-Length", String.valueOf(file.length()));
-	addHeader("Date", token.getUploadInfo().getDate());
-	addHeader("Authorization", token.getUploadInfo().getSignature());
-	addHeader("Content-Type", "image/jpg");
-	addHeader("x-amz-acl", "public-read");
-	CountingInputStreamEntity countingInputStreamEntity = new CountingInputStreamEntity(
-		fileInputStream, file.length());
-	final long total = file.length();
-	countingInputStreamEntity.setUploadListener(new UploadListener() {
+	private void startUpload() throws IOException {
+		HttpPut request = new HttpPut(getUrl());
+		File file = new File(token.getUploadInfo().getFilepath());
+		FileInputStream fileInputStream = new FileInputStream(file);
+		setSocketTimeout(UPLOAD_SOCKET_TIMEOUT);
+		// request.addHeader("Content-Length", String.valueOf(file.length()));
+		addHeader("Date", token.getUploadInfo().getDate());
+		addHeader("Authorization", token.getUploadInfo().getSignature());
+		addHeader("Content-Type", "image/jpg");
+		addHeader("x-amz-acl", "public-read");
+		CountingInputStreamEntity countingInputStreamEntity = new CountingInputStreamEntity(
+				fileInputStream, file.length());
+		final long total = file.length();
+		countingInputStreamEntity.setUploadListener(new UploadListener() {
 
-	    @Override
-	    public void onChange(long current) {
-		onProgressUpdate.onProgress(total, current);
-	    }
-	});
-	request.setEntity(countingInputStreamEntity);
-	executeRequest(request);
-    }
+			@Override
+			public void onChange(long current) {
+				onProgressUpdate.onProgress(total, current);
+			}
+		});
+		request.setEntity(countingInputStreamEntity);
+		executeRequest(request);
+	}
 
-    @Override
-    public GCHttpRequestParameters getRequestParameters() {
-	return null;
-    }
+	@Override
+	public GCHttpRequestParameters getRequestParameters() {
+		return null;
+	}
 
 }
